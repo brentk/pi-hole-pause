@@ -1,0 +1,90 @@
+<html>
+    <head>
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+        <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+        <link rel="shortcut icon"type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABgWlDQ1BzUkdCIElFQzYxOTY2LTIuMQAAKJF1kd8rg1EYxz/baGKi7MKFiyVcbWJquFEmjZLWTBluttd+qP14e98tya1yu6LEjV8X/AXcKtdKESkpd66JG/R63m21JXtOz3k+53vO83TOc8AaTisZvWEAMtm8Fgr4XQuRRZf9BTtObAxjiSq6Oh4MzlDXPu+xmPHWY9aqf+5fa1mJ6wpYmoTHFFXLC08Jz6zlVZN3hJ1KKroifCbs1uSCwnemHivzq8nJMn+brIVDE2BtF3YlazhWw0pKywjLy+nJpAtK5T7mSxzx7PycxG7xLnRCBPDjYppJJvAxyKjMPjx46ZcVdfIHSvmz5CRXkVllHY1VkqTI4xa1INXjEhOix2WkWTf7/7evemLIW67u8EPjs2G894J9G36KhvF1ZBg/x2B7gstsNT93CCMfoherWs8BtG3C+VVVi+3CxRZ0PqpRLVqSbOLWRALeTqE1Ah030LxU7llln5MHCG/IV13D3j70yfm25V8qH2fKQLNeYwAAAAZiS0dEAAAAAAAA+UO7fwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+MJCBAMDVqCGdMAAAFgSURBVDjLnZI7S0NhDIaffK2KSGnppIMWnFx06e7oIPoLdBOqqIOr4B+oIGJBaPGy1NHJgpOKUlwEZ3XxBl4o0qFY1N7i0HPaYzmnii9kCMmTfEk+cJMOmPOoiZT8rBd62HsJMWZFIkAHv0lhRkFtq4HeCwkNIH+BYwpVZwEF/QLdNGTaws8w2wo6bcugcSGTNHTajHF0XuiDZN2xkEaw7pcUgsIEkLJDAnAjTF9DOi/wrrBYs2CRZgEg5fuxgkNg0n8kjGSFdMl6jt+RswR0AXH3iceBmHkQViqOWZw9NoDV9jufMmUI83+FDHDgFQ0Dg97nxg+nZq5GAjhzS7oDLh1+TqEClOvFc8PKmiQNYq3gBBitKsx7XKEoQgFU4LMXogJXjepJQzAhXGwbtCH7Bzj8D3hVGGrZd1O7huyb928sWrC3Yj4Ct8KxC/z4K2xr39BdgGWFJ4W8wo5Cv1vuNxEus+eStF7aAAAAAElFTkSuQmCC">
+        <style>
+            body {
+                font-family: Helvetica, Arial, sans-serif;
+                font-size: 4em;
+                position: relative;
+            }
+
+            #status {
+                margin: 0;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -90%);
+                white-space: nowrap;
+            }
+
+            .reload-button {
+                cursor: pointer;
+            }
+
+            #continue-button {
+                display: none;
+                color: white;
+                font-size: .5em;
+                padding: 12px;
+                background: none;
+                border: 1px solid white;
+                border-radius: 8px;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, 30%);
+                white-space: nowrap;
+            }
+        </style>
+        <script>
+
+            let countdown = function() {
+
+                if (window.timeRemaining <= 0) {
+                    $("body").css("background-color", "gray");
+                    $("#continue-button").hide();
+                    $("#status").html(`Pihole enabled. <i class='fa fa-refresh reload-button' onClick="document.location.reload();"></i>`);
+                    return;
+                }
+
+                $("#status").html(`Pihole disabled for ${window.timeRemaining} seconds`);
+                window.timeRemaining--;
+                setTimeout(countdown, 1000);
+            }
+
+            $(document).ready(function() {
+
+                $("#continue-button").click(function() {
+                    window.history.back();
+                });
+
+                const secondsToDisable = 60;
+                const authToken = "b8e0605361a7cf1f0b27a3bb1774709271547622c8499f86bc28d39fb1c53e4e";
+                const disableUrl = `/admin/api.php?disable=${secondsToDisable}&auth=${authToken}`;
+
+                $.ajax({
+                    url: disableUrl,
+                    method: "GET",
+                    dataType: "json"
+                }).done(function(response){
+                    console.log(response);
+                    if (response.status != "disabled") {
+                        $("body").css("background-color", "red");
+                    } else {
+                        $("body").css("background-color", "green");
+                        $("#continue-button").fadeIn("slow");
+                        window.timeRemaining = secondsToDisable;
+                        countdown();
+                    }
+                });
+
+            });
+        </script>
+    </head>
+    <body>
+        <div id="status">Calling pihole...</div>
+        <button id="continue-button">Continue <i class="fa fa-arrow-right"></i></button>
+    </body>
+</html>
