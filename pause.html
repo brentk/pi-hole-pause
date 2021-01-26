@@ -41,6 +41,12 @@
         </style>
         <script>
 
+            const autoForward = true;
+            const secondsToDisable = 60;
+            const authToken = "b8e0605361a7cf1f0b27a3bb1774709271547622c8499f86bc28d39fb1c53e4e";
+            const disableUrl = `/admin/api.php?disable=${secondsToDisable}&auth=${authToken}`;
+            let forwardIn = 3;
+
             let countdown = function() {
 
                 if (window.timeRemaining <= 0) {
@@ -52,6 +58,18 @@
 
                 $("#status").html(`Pihole disabled for ${window.timeRemaining} seconds`);
                 window.timeRemaining--;
+
+
+                if (autoForward && forwardIn >= 0) {
+                    $("#continue-button").html(`Forwarding in ${forwardIn} <i class="fa fa-arrow-right"></i>`);
+                    if (forwardIn == 0) {
+                        window.history.back();
+                    } else {
+                        forwardIn--
+                    }
+                }
+
+
                 setTimeout(countdown, 1000);
             }
 
@@ -60,10 +78,6 @@
                 $("#continue-button").click(function() {
                     window.history.back();
                 });
-
-                const secondsToDisable = 60;
-                const authToken = "b8e0605361a7cf1f0b27a3bb1774709271547622c8499f86bc28d39fb1c53e4e";
-                const disableUrl = `/admin/api.php?disable=${secondsToDisable}&auth=${authToken}`;
 
                 $.ajax({
                     url: disableUrl,
@@ -79,6 +93,9 @@
                         window.timeRemaining = secondsToDisable;
                         countdown();
                     }
+                }).fail(function() {
+                    $("body").css("background-color", "red");
+                    $("#status").html(`Something went wrong (maybe check your api key).`);
                 });
 
             });
